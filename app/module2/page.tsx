@@ -11,15 +11,18 @@ export default function Module2() {
     try {
       setError(null);
       const loopsPerVertex = new Array(size).fill(0);
+      
+      // Считаем ТОЛЬКО двойки (2) по вершинам
       for (let v = 0; v < size; v++) {
         for (let e = 0; e < data.length; e++) {
-          if (data[e][v] === -1) loopsPerVertex[v]++;
+          if (data[e][v] === 2) loopsPerVertex[v]++;
         }
       }
+      
       const totalLoops = loopsPerVertex.reduce((a, b) => a + b, 0);
       setResult({
         perVertex: `По вершинам: [${loopsPerVertex.join(', ')}]`,
-        total: `Общее количество: ${totalLoops}`
+        total: `Общее количество петель: ${totalLoops}`
       });
     } catch {
       setError('Ошибка в данных');
@@ -28,7 +31,7 @@ export default function Module2() {
 
   return (
     <div>
-      <h1>Модуль 2: Количество петель</h1>
+      <h1>Модуль 2: Количество двоек (петель)</h1>
       <MatrixInput onSubmit={calculate} title="Матрица инцидентности" />
       {error && <div className="graph-error">{error}</div>}
       {result && (
