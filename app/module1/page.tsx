@@ -8,14 +8,11 @@ export default function Module1() {
   const [error, setError] = useState<string | null>(null);
 
   const calculate = ({ data }: MatrixForm) => {
-    try {
-      setError(null);
-      // Петли: -1 ИЛИ 2 в любом месте
-      const hasLoops = data.some(row => row.some(val => val === -1 || val === 2));
-      setResult(hasLoops ? 'Да, это псевдограф (найдены петли: -1 или 2)' : 'Нет, обычный граф');
-    } catch {
-      setError('Ошибка в данных');
-    }
+  try {
+    setError(null);
+    const hasLoops = data.some(row => row.filter(val => val === 1).length === 2);
+    setResult(hasLoops ? 'Да, это псевдограф (найдены петли)' : 'Нет');
+  } catch { setError('Ошибка'); }
   };
 
   return (

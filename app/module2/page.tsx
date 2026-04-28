@@ -4,26 +4,16 @@ import type { MatrixForm } from '@/types/matrix';
 import MatrixInput from '@/components/MatrixForm';
 
 export default function Module2() {
-  const [result, setResult] = useState<{ perVertex: string; total: string } | null>(null);
+  const [result, setResult] = useState<string | null>(null);  // ← УПРОЩЁННЫЙ тип
   const [error, setError] = useState<string | null>(null);
 
-  const calculate = ({ data, size }: MatrixForm) => {
+  const calculate = ({ data }: MatrixForm) => {
     try {
       setError(null);
-      const loopsPerVertex = new Array(size).fill(0);
-      
-      // Считаем ТОЛЬКО двойки (2) по вершинам
-      for (let v = 0; v < size; v++) {
-        for (let e = 0; e < data.length; e++) {
-          if (data[e][v] === 2) loopsPerVertex[v]++;
-        }
-      }
-      
-      const totalLoops = loopsPerVertex.reduce((a, b) => a + b, 0);
-      setResult({
-        perVertex: `По вершинам: [${loopsPerVertex.join(', ')}]`,
-        total: `Общее количество петель: ${totalLoops}`
-      });
+      const loopCount = data.filter(row => 
+        row.filter(val => val === 1).length === 2
+      ).length;
+      setResult(`Количество петель: ${loopCount}`);
     } catch {
       setError('Ошибка в данных');
     }
@@ -31,16 +21,11 @@ export default function Module2() {
 
   return (
     <div>
-      <h1>Модуль 2: Количество двоек (петель)</h1>
+      <h1>Модуль 2: Количество петель</h1>
+      <p>Петля — ребро, соединяющее вершину саму с собой (два 1 в строке).</p>
       <MatrixInput onSubmit={calculate} title="Матрица инцидентности" />
       {error && <div className="graph-error">{error}</div>}
-      {result && (
-        <div className="result">
-          <h3>Результат:</h3>
-          <p>{result.perVertex}</p>
-          <p><strong>{result.total}</strong></p>
-        </div>
-      )}
+      {result && <div className="result"><h3>Результат:</h3><p>{result}</p></div>}
     </div>
   );
 }

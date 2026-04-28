@@ -2,61 +2,44 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { MatrixForm } from '@/types/matrix';
 
-interface Props { 
-  onSubmit: (data: MatrixForm) => void; 
-  title: string; 
-}
+interface Props { onSubmit: (data: MatrixForm) => void; title: string; }
 
 export default function MatrixInput({ onSubmit, title }: Props) {
   const [numVertices, setNumVertices] = useState(3);
   const [numEdges, setNumEdges] = useState(3);
   const [data, setData] = useState<number[][]>([]);
 
-  // Инициализация/ресайз матрицы
   useEffect(() => {
     const newData: number[][] = Array.from({ length: numEdges }, () => 
       Array(numVertices).fill(0)
     );
-    
-    // Копируем старые данные если возможно
     for (let e = 0; e < Math.min(numEdges, data.length); e++) {
       for (let v = 0; v < Math.min(numVertices, data[0]?.length || 0); v++) {
         newData[e][v] = data[e][v] || 0;
       }
     }
-    
     setData(newData);
   }, [numVertices, numEdges]);
 
   const updateVertices = (newVertices: number) => {
-    if (newVertices >= 1 && newVertices <= 15) {
-      setNumVertices(newVertices);
-    }
+    if (newVertices >= 1 && newVertices <= 15) setNumVertices(newVertices);
   };
 
   const updateEdges = (newEdges: number) => {
-    if (newEdges >= 1 && newEdges <= 15) {
-      setNumEdges(newEdges);
-    }
+    if (newEdges >= 1 && newEdges <= 15) setNumEdges(newEdges);
   };
 
   const updateCell = useCallback((row: number, col: number, val: string) => {
-    const num = Math.max(-1, Math.min(2, parseInt(val) || 0));
-    setData(prev => {
-      const newData = prev.map(r => [...r]);
-      if (row < prev.length && col < prev[0]?.length) {
-        newData[row][col] = num;
-      }
-      return newData;
-    });
-  }, []);
+  const num = val === '1' ? 1 : (val === '0' ? 0 : 0); // Только 0 или 1
+  setData(prev => {
+    const newData = prev.map(r => [...r]);
+    newData[row][col] = num;
+    return newData;
+  });
+}, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (data.length !== numEdges || (data[0] && data[0].length !== numVertices)) {
-      alert('Размер матрицы не соответствует указанным!');
-      return;
-    }
     onSubmit({ size: numVertices, data, numEdges });
   };
 
@@ -65,46 +48,29 @@ export default function MatrixInput({ onSubmit, title }: Props) {
       <h2>{title}</h2>
       
       <div className="size-input">
-        <label>Вершины: </label>
-        <input 
-          type="number" 
-          min="1" 
-          max="15" 
-          value={numVertices} 
-          onChange={(e) => updateVertices(+e.target.value)}
-        />
-        <label style={{ marginLeft: '2rem' }}>Рёбра: </label>
-        <input 
-          type="number" 
-          min="1" 
-          max="15" 
-          value={numEdges} 
-          onChange={(e) => updateEdges(+e.target.value)}
-        />
+        <label>Количество вершин: </label>
+        <input type="number" min="1" max="15" value={numVertices} onChange={e => updateVertices(+e.target.value)} />
+        <label style={{ marginLeft: '2rem' }}>Количество рёбер: </label>
+        <input type="number" min="1" max="15" value={numEdges} onChange={e => updateEdges(+e.target.value)} />
       </div>
       
-      <div 
-        className="matrix-input"
-        style={{ 
-          '--cols': numVertices, 
-          '--rows': numEdges 
-        } as React.CSSProperties}
-      >
+      <div className="matrix-input" style={{ '--cols': numVertices, '--rows': numEdges } as React.CSSProperties}>
         {Array.from({ length: numEdges }, (_, row) =>
           Array.from({ length: numVertices }, (_, col) => (
             <input
               key={`${row}-${col}`}
               type="number"
-              min="-1"
-              max="2"
+              min="0"
+              max="1"
+              step="1"
               value={data[row]?.[col] ?? 0}
-              onChange={(e) => updateCell(row, col, e.target.value)}
+              onChange={e => updateCell(row, col, e.target.value)}
             />
           ))
         )}
       </div>
       
-      <button type="submit" className="btn">Рассчитать</button>
+      <button type="submit" className="btn">Посчитать</button>
     </form>
   );
 }

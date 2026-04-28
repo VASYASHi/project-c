@@ -3,16 +3,16 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div className="hero">
-      <h1>Графы по матрице инцидентности</h1>
-      <p>Калькулятор для анализа графов. Введите матрицу инцидентности (до 15x15) и получите результаты по 6 задачам.</p>
-      <p><strong>Инструкция:</strong> Выберите размер матрицы, заполните её (0/1/-1 для петель), нажмите "Рассчитать".</p>
+      <h1>Программа для работы с графами</h1>
+      <p>Эта программа поможет вам изучить свойства простых графов. Вы можете ввести матрицу инцидентности и узнать много интересного о вашем графе.</p>
+      <p><strong>Как пользоваться:</strong> Сначала выберите количество вершин и рёбер. Потом заполните таблицу нулями и единицами. Нажмите кнопку Посчитать.</p>
       <div className="btn-grid">
-        <Link href="/module1" className="btn">1. Псевдограф</Link>
-        <Link href="/module2" className="btn">2. Петли</Link>
-        <Link href="/module3" className="btn">3. Степени вершин</Link>
-        <Link href="/module4" className="btn">4. Регулярный</Link>
-        <Link href="/module5" className="btn">5. Смежность</Link>
-        <Link href="/module6" className="btn">6. Мультиграф</Link>
+        <a href="/module1" className="btn">Проверить псевдограф</a>
+        <a href="/module2" className="btn">Найти петли</a>
+        <a href="/module3" className="btn">Посчитать степени</a>
+        <a href="/module4" className="btn">Проверить регулярность</a>
+        <a href="/module5" className="btn">Составить смежность</a>
+        <a href="/module6" className="btn">Проверить мультиграф</a>
       </div>
     </div>
   );

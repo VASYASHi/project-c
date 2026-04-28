@@ -2,11 +2,13 @@
   "name": "project-c",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://VASYASHi.github.io/project-c",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d out --nojekyll"
   },
   "dependencies": {
     "next": "16.2.4",
