@@ -1,7 +1,6 @@
 'use client';
 import { useState, useCallback } from 'react';
 import type { MatrixForm } from '@/types/matrix';
-// import './MatrixForm.module.css';  // Если есть локальные стили
 
 interface Props { 
   onSubmit: (data: MatrixForm) => void; 
@@ -9,28 +8,39 @@ interface Props {
 }
 
 export default function MatrixInput({ onSubmit, title }: Props) {
-  const [size, setSize] = useState(3);
+  const [numVertices, setNumVertices] = useState(3);
+  const [numEdges, setNumEdges] = useState(3);
   const [data, setData] = useState<number[][]>([
     [0, 0], [0, 0], [0, 0]
   ]);
 
-  const updateSize = (newSize: number) => {
-    if (newSize < 1 || newSize > 15) return;
-    setSize(newSize);
-    const newData = Array.from({ length: newSize }, () => 
-      Array(newSize).fill(0)
+  const updateVertices = (newVertices: number) => {
+    if (newVertices < 1 || newVertices > 15) return;
+    setNumVertices(newVertices);
+    resizeMatrix();
+  };
+
+  const updateEdges = (newEdges: number) => {
+    if (newEdges < 1 || newEdges > 15) return;
+    setNumEdges(newEdges);
+    resizeMatrix();
+  };
+
+  const resizeMatrix = () => {
+    const newData = Array.from({ length: numEdges }, () => 
+      Array(numVertices).fill(0)
     );
     // Копируем старые данные
-    for (let i = 0; i < Math.min(newSize, data.length); i++) {
-      for (let j = 0; j < Math.min(newSize, data[0]?.length || 0); j++) {
-        newData[i][j] = data[i][j];
+    for (let e = 0; e < Math.min(numEdges, data.length); e++) {
+      for (let v = 0; v < Math.min(numVertices, data[0]?.length || 0); v++) {
+        newData[e][v] = data[e][v];
       }
     }
     setData(newData);
   };
 
   const updateCell = useCallback((row: number, col: number, val: string) => {
-    const num = Math.max(-1, Math.min(1, parseInt(val) || 0));
+    const num = Math.max(-1, Math.min(2, parseInt(val) || 0)); // -1,0,1,2
     const newData = data.map(r => [...r]);
     newData[row][col] = num;
     setData(newData);
@@ -38,36 +48,51 @@ export default function MatrixInput({ onSubmit, title }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ size, data });
+    if (data.length !== numEdges || data[0]?.length !== numVertices) {
+      alert('Размер матрицы не совпадает!');
+      return;
+    }
+    onSubmit({ size: numVertices, data, numEdges }); // Добавил numEdges
   };
 
   return (
     <form onSubmit={handleSubmit} className="matrix-container">
       <h2>{title}</h2>
+      
       <div className="size-input">
-        <label>Размер (вершины): </label>
+        <label>Вершины (столбцы): </label>
         <input 
           type="number" 
           min="1" 
           max="15" 
-          value={size} 
-          onChange={(e) => updateSize(+e.target.value)} 
+          value={numVertices} 
+          onChange={(e) => updateVertices(+e.target.value)}
+          style={{ width: '80px' }}
+        />
+        <label style={{ marginLeft: '2rem' }}>Рёбра (строки): </label>
+        <input 
+          type="number" 
+          min="1" 
+          max="15" 
+          value={numEdges} 
+          onChange={(e) => updateEdges(+e.target.value)}
+          style={{ width: '80px' }}
         />
       </div>
       
       <div 
         className="matrix-input" 
-        style={{ '--size': size } as React.CSSProperties}
+        style={{ '--cols': numVertices, '--rows': numEdges } as React.CSSProperties}
       >
-        {Array.from({ length: size }, (_, i) =>
-          Array.from({ length: size }, (_, j) => (
+        {Array.from({ length: numEdges }, (_, row) =>
+          Array.from({ length: numVertices }, (_, col) => (
             <input
-              key={`${i}-${j}`}
+              key={`${row}-${col}`}
               type="number"
               min="-1"
-              max="1"
-              value={data[i]?.[j] ?? 0}
-              onChange={(e) => updateCell(i, j, e.target.value)}
+              max="2"
+              value={data[row]?.[col] ?? 0}
+              onChange={(e) => updateCell(row, col, e.target.value)}
             />
           ))
         )}
