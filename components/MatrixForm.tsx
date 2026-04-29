@@ -29,14 +29,33 @@ export default function MatrixInput({ onSubmit, title }: Props) {
     if (newEdges >= 1 && newEdges <= 15) setNumEdges(newEdges);
   };
 
+  const getRowUnitsCount = (row: number) => {
+  return (data[row] || []).filter(val => val === 1).length;
+};
+
+const isCellBlocked = (row: number, col: number) => {
+  const unitsCount = getRowUnitsCount(row);
+  const currentValue = data[row]?.[col] ?? 0;
+  
+  // Блокируем если уже 2 единицы и пытаемся добавить третью
+  if (unitsCount >= 2 && currentValue === 0) return true;
+  
+  return false;
+};
+
   const updateCell = useCallback((row: number, col: number, val: string) => {
-  const num = val === '1' ? 1 : (val === '0' ? 0 : 0); // Только 0 или 1
+  const num = val === '1' ? 1 : 0;
+  const currentUnits = getRowUnitsCount(row);
+  
+  // Защита: не больше 2 единиц в строке
+  if (num === 1 && currentUnits >= 2) return;
+  
   setData(prev => {
     const newData = prev.map(r => [...r]);
     newData[row][col] = num;
     return newData;
   });
-}, []);
+}, [data]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,14 +77,19 @@ export default function MatrixInput({ onSubmit, title }: Props) {
         {Array.from({ length: numEdges }, (_, row) =>
           Array.from({ length: numVertices }, (_, col) => (
             <input
-              key={`${row}-${col}`}
-              type="number"
-              min="0"
-              max="1"
-              step="1"
-              value={data[row]?.[col] ?? 0}
-              onChange={e => updateCell(row, col, e.target.value)}
-            />
+  key={`${row}-${col}`}
+  type="number"
+  min="0"
+  max="1"
+  step="1"
+  value={data[row]?.[col] ?? 0}
+  onChange={e => updateCell(row, col, e.target.value)}
+  disabled={isCellBlocked(row, col)}
+  style={{ 
+    background: isCellBlocked(row, col) ? '#f0f0f0' : 'white',
+    cursor: isCellBlocked(row, col) ? 'not-allowed' : 'text'
+  }}
+/>
           ))
         )}
       </div>

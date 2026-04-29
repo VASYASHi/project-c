@@ -8,16 +8,18 @@ export default function Module2() {
   const [error, setError] = useState<string | null>(null);
 
   const calculate = ({ data }: MatrixForm) => {
-    try {
-      setError(null);
-      const loopCount = data.filter(row => 
-        row.filter(val => val === 1).length === 2
-      ).length;
-      setResult(`Количество петель: ${loopCount}`);
-    } catch {
-      setError('Ошибка в данных');
-    }
-  };
+  try {
+    setError(null);
+    // Петли: строки с ровно 1 единицей
+    const loopCount = data.filter(row => 
+      row.filter(val => val === 1).length === 1
+    ).length;
+    setResult(`Количество петель: ${loopCount}`);
+  } catch {
+    setError('Ошибка в данных');
+  }
+};
+
 
   return (
     <div>

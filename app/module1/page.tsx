@@ -10,10 +10,14 @@ export default function Module1() {
   const calculate = ({ data }: MatrixForm) => {
   try {
     setError(null);
-    const hasLoops = data.some(row => row.filter(val => val === 1).length === 2);
-    setResult(hasLoops ? 'Да, это псевдограф (найдены петли)' : 'Нет');
-  } catch { setError('Ошибка'); }
-  };
+    // Петля: строка с ровно ОДНОЙ единицей
+    const hasLoops = data.some(row => row.filter(val => val === 1).length === 1);
+    setResult(hasLoops ? 'Да, псевдограф (найдены петли)' : 'Нет');
+  } catch {
+    setError('Ошибка в данных');
+  }
+};
+
 
   return (
     <div>
