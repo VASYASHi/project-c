@@ -8,25 +8,31 @@ export default function Module3() {
   const [error, setError] = useState<string | null>(null);
 
   const calculate = ({ data, size }: MatrixForm) => {
-    try {
-      setError(null);
-      const degrees = new Array(size).fill(0);
-      for (let v = 0; v < size; v++) {
-        for (let e = 0; e < data.length; e++) {
-          degrees[v] += Math.abs(data[e][v]);
+  try {
+    const degrees = new Array(size).fill(0);
+    for (let v = 0; v < size; v++) {
+      for (let e = 0; e < data.length; e++) {
+        const val = Math.abs(data[e][v]);
+        if (val > 0) {
+          // Петля = ребро только для этой вершины
+          const isOnlyThisVertex = data[e].filter(x => Math.abs(x) > 0).length === 1;
+          degrees[v] += isOnlyThisVertex ? val * 2 : val;
         }
       }
-      const evenVertices = degrees.map((d, i) => d % 2 === 0 ? i + 1 : null).filter(Boolean);
-      const oddVertices = degrees.map((d, i) => d % 2 === 1 ? i + 1 : null).filter(Boolean);
-      setResult({
-        degrees: `Степени: [${degrees.join(', ')}]`,
-        even: `Чётные (${evenVertices.length}): ${evenVertices.join(', ') || 'нет'}`,
-        odd: `Нечётные (${oddVertices.length}): ${oddVertices.join(', ') || 'нет'}`
-      });
-    } catch {
-      setError('Ошибка в данных');
     }
-  };
+    
+    const even = degrees.map((d,i) => d%2===0 ? i+1 : null).filter(Boolean);
+    const odd = degrees.map((d,i) => d%2===1 ? i+1 : null).filter(Boolean);
+    
+    setResult({
+      degrees: `Степени: [${degrees.join(', ')}]`,
+      even: `Чётные (${even.length}): ${even.join(', ') || 'нет'}`,
+      odd: `Нечётные (${odd.length}): ${odd.join(', ') || 'нет'}`
+    });
+  } catch (e) {
+    setError(`Ошибка: ${(e as Error).message}`);
+  }
+};
 
   return (
     <div>

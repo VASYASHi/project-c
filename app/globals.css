@@ -109,6 +109,9 @@ body {
   color: #888;
   cursor: not-allowed;
 }
+.help-text { font-size: 0.95rem; color: #666; margin-bottom: 1rem; }
+.matrix-cell.error { background: #ffebee !important; }
+.matrix-cell.valid { background: #e8f5e8 !important; }
 
 
 .result { 

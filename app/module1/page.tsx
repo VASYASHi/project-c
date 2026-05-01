@@ -9,12 +9,11 @@ export default function Module1() {
 
   const calculate = ({ data }: MatrixForm) => {
   try {
-    setError(null);
-    // Петля: строка с ровно ОДНОЙ единицей
-    const hasLoops = data.some(row => row.filter(val => val === 1).length === 1);
-    setResult(hasLoops ? 'Да, псевдограф (найдены петли)' : 'Нет');
-  } catch {
-    setError('Ошибка в данных');
+    // Петля = 2 в строке ИЛИ две 1 в одной вершине (невозможно)
+    const hasLoops = data.some(row => row.some(val => val === 2));
+    setResult(hasLoops ? 'Да, псевдограф (найдены петли со степенью 2)' : 'Нет, простой граф');
+  } catch (e) {
+    setError(`Ошибка вычисления: ${(e as Error).message}`);
   }
 };
 

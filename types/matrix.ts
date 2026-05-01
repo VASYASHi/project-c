@@ -1,6 +1,6 @@
 export interface MatrixForm { 
   size: number;      // Вершины
-  data: number[][];  // Матрица [edges][vertices]
+  data: number[][];  // [edges][vertices]
   numEdges: number;  // Рёбра
 }
 

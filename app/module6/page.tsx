@@ -8,30 +8,35 @@ export default function Module6() {
   const [error, setError] = useState<string | null>(null);
 
   const calculate = ({ data, size }: MatrixForm) => {
-  try {
-    setError(null);
-    
-    // Считаем единицы по столбцам для каждой строки
-    const isMultiGraph = data.some(row => {
-      const colCounts: number[] = new Array(size).fill(0);
-      row.forEach((val, col) => {
-        if (val === 1) colCounts[col]++;
-      });
-      // Мульти: есть столбец с 2+ единицами в разных строках
-      return colCounts.some(count => count > 1);
-    });
-    
-    setResult(isMultiGraph ? 'Да, мультиграф (кратные рёбра)' : 'Нет, простой граф');
-  } catch {
-    setError('Ошибка в данных');
-  }
-};
-
+    try {
+      setError(null);
+      
+      // Подсчёт рёбер между парами вершин
+      const edgeMap = new Map<string, number>();
+      for (let e = 0; e < data.length; e++) {
+        const vertices = [];
+        for (let v = 0; v < size; v++) {
+          if (Math.abs(data[e][v]) > 0) vertices.push(v);
+        }
+        
+        if (vertices.length === 2) {
+          const [v1, v2] = vertices.sort((a,b) => a-b);
+          const key = `${v1}-${v2}`;
+          edgeMap.set(key, (edgeMap.get(key) || 0) + 1);
+        }
+      }
+      
+      const hasMultiEdges = Array.from(edgeMap.values()).some(count => count > 1);
+      setResult(hasMultiEdges ? 'Да, мультиграф (кратные рёбра найдены)' : 'Нет, простой граф');
+    } catch (e) {
+      setError(`Ошибка проверки: ${(e as Error).message}`);
+    }
+  };
 
   return (
     <div>
       <h1>Модуль 6: Мультиграф?</h1>
-      <p>Мультиграф — 1 ребра между вершинами.</p>
+      <p>Мультиграф содержит кратные рёбра между вершинами.</p>
       <MatrixInput onSubmit={calculate} title="Матрица инцидентности" />
       {error && <div className="graph-error">{error}</div>}
       {result && <div className="result"><h3>Результат:</h3><p>{result}</p></div>}

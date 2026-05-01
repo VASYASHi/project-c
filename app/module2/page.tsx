@@ -9,14 +9,15 @@ export default function Module2() {
 
   const calculate = ({ data }: MatrixForm) => {
   try {
-    setError(null);
-    // Петли: строки с ровно 1 единицей
-    const loopCount = data.filter(row => 
-      row.filter(val => val === 1).length === 1
-    ).length;
-    setResult(`Количество петель: ${loopCount}`);
-  } catch {
-    setError('Ошибка в данных');
+    const loops = data.filter(row => row.some(val => val === 2));
+    const loopVertices = loops.map(row => 
+      row.findIndex(val => val === 2) + 1
+    );
+    setResult(
+      `Петли найдены на вершинах: ${loopVertices.length ? loopVertices.join(', ') : 'нет'} (${loopVertices.length})`
+    );
+  } catch (e) {
+    setError(`Ошибка: ${(e as Error).message}`);
   }
 };
 
