@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <section className="card intro">
       <h1>Анализ графов по матрице инцидентности</h1>
-      <p>Введите таблицу с нулями и единицами. В каждой строке должно быть ровно две единицы.</p>
+      <p>Выберите параметр, который хотите проверить в матрице.</p>
 
       <div className="grid">
         <Link className="btn" href="/module1">Псевдограф</Link>

@@ -23,7 +23,10 @@ export default function MatrixForm() {
   const [cellDrafts, setCellDrafts] = useState<Record<string, CellState>>({});
 
   const matrixValidity = useMemo(() => {
-    return matrix.map((row) => row.filter((v) => v === 1).length === 2);
+    return matrix.map((row) => {
+      const ones = row.filter((v) => v === 1).length;
+      return ones === 1 || ones === 2; // 1 = петля, 2 = обычное ребро
+    });
   }, [matrix]);
 
   const hasAnyValue = useMemo(() => {
@@ -204,12 +207,12 @@ export default function MatrixForm() {
       </div>
 
       <div className="matrix-hint">
-        При фокусе значение очищается. Введите 0 или 1 с клавиатуры. В каждой строке должно быть ровно две единицы.
+        При фокусе значение очищается. Введите 0 или 1. В строке: 2 единицы — обычное ребро, 1 единица — петля.
       </div>
 
       {hasAnyValue && !matrixValidity.every(Boolean) && (
         <div className="matrix-warning">
-          Матрица не соответствует простому графу
+          Ошибка: в строке должно быть 1 или 2 единицы
         </div>
       )}
     </section>

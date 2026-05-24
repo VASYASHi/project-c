@@ -5,7 +5,7 @@ import MatrixForm from '@/components/MatrixForm';
 import { useGraph } from '@/context/GraphContext';
 
 export default function Module2() {
-  const { matrix, setLastModule, setLastResult } = useGraph();
+  const { matrix, vertices, setLastModule, setLastResult } = useGraph();
   const [result, setResult] = useState('');
 
   const run = () => {
@@ -15,10 +15,33 @@ export default function Module2() {
       return;
     }
 
-    const invalidRows = matrix.filter(row => row.filter(v => v === 1).length !== 2).length;
-    const text = invalidRows > 0
-      ? `Найдено ${invalidRows} рёбер с нарушенной структурой (петли в 0/1 невозможны)`
-      : 'Петель нет (граф простой)';
+    // Проверяем валидность
+    const isValid = matrix.every(row => {
+      const ones = row.filter(v => v === 1).length;
+      return ones === 1 || ones === 2;
+    });
+
+    if (!isValid) {
+      setResult('Некорректная матрица');
+      return;
+    }
+
+    // Находим петли (строки с 1 единицей)
+    const loops: number[] = [];
+    matrix.forEach((row, edgeIdx) => {
+      const ones = row.filter(v => v === 1).length;
+      if (ones === 1) {
+        // Находим номер вершины с петлей
+        const vertexIdx = row.findIndex(v => v === 1);
+        if (vertexIdx !== -1 && !loops.includes(vertexIdx)) {
+          loops.push(vertexIdx);
+        }
+      }
+    });
+
+    const text = loops.length > 0 
+      ? `Петли найдены у вершин: ${loops.map(v => `V${v + 1}`).join(', ')}`
+      : 'Петли отсутствуют';
 
     setResult(text);
     setLastModule('module2');
@@ -33,6 +56,7 @@ export default function Module2() {
   return (
     <div className="container">
       <h1>Модуль 2: Найти петли</h1>
+      <p>Петля — это ребро, у которого начало и конец находятся в одной вершине. В матрице инцидентности петля обозначается одной единицей.</p>
       
       <MatrixForm />
       

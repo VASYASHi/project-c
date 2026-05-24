@@ -15,10 +15,20 @@ export default function Module1() {
       return;
     }
 
-    const isPseudograph = matrix.some(row => row.filter(v => v === 1).length !== 2);
-    const text = isPseudograph 
-      ? 'Да, нарушена структура простого графа' 
-      : 'Нет';
+    // Проверяем валидность: в строке должно быть 1 или 2 единицы
+    const isValid = matrix.every(row => {
+      const ones = row.filter(v => v === 1).length;
+      return ones === 1 || ones === 2;
+    });
+
+    if (!isValid) {
+      setResult('Некорректная матрица (в строке должно быть 1 или 2 единицы)');
+      return;
+    }
+
+    // Псевдограф = есть петли (строки с 1 единицей)
+    const hasLoops = matrix.some(row => row.filter(v => v === 1).length === 1);
+    const text = hasLoops ? 'Да, является псевдографом (есть петли)' : 'Нет, не является псевдографом (петель нет)';
     
     setResult(text);
     setLastModule('module1');
@@ -33,7 +43,7 @@ export default function Module1() {
   return (
     <div className="container">
       <h1>Модуль 1: Проверка псевдографа</h1>
-      <p>Для простого графа в каждой строке должно быть ровно две единицы.</p>
+      <p>Псевдограф — это граф, в котором есть петли. Петля в матрице инцидентности обозначается одной единицей в строке.</p>
       
       <MatrixForm />
       

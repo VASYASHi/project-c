@@ -15,22 +15,41 @@ export default function Module6() {
       return;
     }
 
-    const isValid = matrix.every(row => row.filter(v => v === 1).length === 2);
+    // Проверяем валидность
+    const isValid = matrix.every(row => {
+      const ones = row.filter(v => v === 1).length;
+      return ones === 1 || ones === 2;
+    });
+
     if (!isValid) {
       setResult('Некорректная матрица');
       return;
     }
 
-    const getEdgeKey = (row: number[]) =>
-      row
-        .reduce((acc, val, idx) => val === 1 ? [...acc, idx] : acc, [] as number[])
-        .sort((a, b) => a - b)
-        .join(',');
-
-    const keys = matrix.map(getEdgeKey);
-    const isMultigraph = new Set(keys).size !== keys.length;
+    // Проверяем на мультиграф (кратные рёбра)
+    // Игнорируем петли (строки с 1 единицей)
+    const edgeSignatures: string[] = [];
     
-    setResult(isMultigraph ? 'Да, есть кратные рёбра' : 'Нет, граф простой');
+    matrix.forEach(row => {
+      const ones = row.filter(v => v === 1).length;
+      
+      if (ones === 2) {
+        // Обычное ребро: создаём сигнатуру (отсортированную пару вершин)
+        const verts = row
+          .reduce((acc, val, idx) => val === 1 ? [...acc, idx] : acc, [] as number[])
+          .sort((a, b) => a - b)
+          .join(',');
+        edgeSignatures.push(verts);
+      }
+    });
+
+    // Если есть повторяющиеся сигнатуры → мультиграф
+    const isMultigraph = new Set(edgeSignatures).size !== edgeSignatures.length;
+    const text = isMultigraph 
+      ? 'Да, является мультиграфом (есть кратные рёбра)'
+      : 'Нет, не является мультиграфом (кратных рёбер нет)';
+    
+    setResult(text);
   };
 
   useEffect(() => {
@@ -41,6 +60,7 @@ export default function Module6() {
   return (
     <div className="container">
       <h1>Модуль 6: Проверить мультиграф</h1>
+      <p>Мультиграф — граф, в котором есть вершины, соединённые более чем одним ребром.</p>
       
       <MatrixForm />
       

@@ -15,26 +15,40 @@ export default function Module4() {
       return;
     }
 
-    if (matrix.length === 0 || vertices === 0) {
-      setResult('Да, регулярный (пустой)');
-      return;
-    }
+    // Проверяем валидность
+    const isValid = matrix.every(row => {
+      const ones = row.filter(v => v === 1).length;
+      return ones === 1 || ones === 2;
+    });
 
-    const isValid = matrix.every(row => row.filter(v => v === 1).length === 2);
     if (!isValid) {
       setResult('Некорректная матрица');
       return;
     }
 
+    // Считаем степени (петля = ×2)
     const degrees = Array(vertices).fill(0);
+    
     matrix.forEach(row => {
-      row.forEach((val, idx) => {
-        if (val === 1) degrees[idx]++;
-      });
+      const ones = row.filter(v => v === 1).length;
+      
+      if (ones === 1) {
+        const idx = row.findIndex(v => v === 1);
+        if (idx !== -1) degrees[idx] += 2;
+      } else if (ones === 2) {
+        row.forEach((val, idx) => {
+          if (val === 1) degrees[idx]++;
+        });
+      }
     });
 
+    // Проверяем регулярность
     const isRegular = degrees.every(d => d === degrees[0]);
-    setResult(isRegular ? `Да, регулярный степени ${degrees[0]}` : 'Нет');
+    const text = isRegular 
+      ? `Да, граф регулярный (все вершины имеют степень ${degrees[0]})`
+      : 'Нет, граф нерегулярный (степени вершин различаются)';
+    
+    setResult(text);
   };
 
   useEffect(() => {
@@ -45,6 +59,7 @@ export default function Module4() {
   return (
     <div className="container">
       <h1>Модуль 4: Проверить регулярность</h1>
+      <p>Регулярный граф — граф, у которого все вершины имеют одну и ту же степень.</p>
       
       <MatrixForm />
       

@@ -16,20 +16,35 @@ export default function Module5() {
       return;
     }
 
-    const isValid = matrix.every(row => row.filter(v => v === 1).length === 2);
+    // Проверяем валидность
+    const isValid = matrix.every(row => {
+      const ones = row.filter(v => v === 1).length;
+      return ones === 1 || ones === 2;
+    });
+
     if (!isValid) {
       setResult('Невалидная матрица');
       return;
     }
 
+    // Строим матрицу смежности
     const next = Array.from({ length: vertices }, () => Array(vertices).fill(0));
     
     matrix.forEach(row => {
-      const verts = row.reduce((acc, val, idx) => val === 1 ? [...acc, idx] : acc, [] as number[]);
-      const [v1, v2] = verts;
-      if (v1 !== undefined && v2 !== undefined) {
-        next[v1][v2]++;
-        next[v2][v1]++;
+      const ones = row.filter(v => v === 1).length;
+      
+      if (ones === 1) {
+        // Петля: a_ii += 1
+        const idx = row.findIndex(v => v === 1);
+        if (idx !== -1) next[idx][idx]++;
+      } else if (ones === 2) {
+        // Обычное ребро: a_ij++, a_ji++
+        const verts = row.reduce((acc, val, idx) => val === 1 ? [...acc, idx] : acc, [] as number[]);
+        const [v1, v2] = verts;
+        if (v1 !== undefined && v2 !== undefined) {
+          next[v1][v2]++;
+          next[v2][v1]++;
+        }
       }
     });
 
@@ -84,7 +99,8 @@ export default function Module5() {
 
   return (
     <div className="container">
-      <h1>Модуль 5: Матрица смежности</h1>
+      <h1>Модуль 5: Составить матрицу смежности</h1>
+      <p>Матрица смежности A(n,n): a_ij = количество рёбер между вершинами v_i и v_j.</p>
       
       <MatrixForm />
       
