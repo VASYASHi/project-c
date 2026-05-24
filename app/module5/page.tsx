@@ -9,8 +9,6 @@ export default function Module5() {
   const [adj, setAdj] = useState<number[][]>([]);
   const [result, setResult] = useState('');
 
-  const validate = (m: number[][]) => m.every(row => row.filter(v => v === 1).length === 2);
-
   const run = () => {
     const hasAnyValue = matrix.some(row => row.some(v => v === 1));
     if (!hasAnyValue) {
@@ -18,17 +16,21 @@ export default function Module5() {
       return;
     }
 
-    if (!validate(matrix)) {
+    const isValid = matrix.every(row => row.filter(v => v === 1).length === 2);
+    if (!isValid) {
       setResult('Невалидная матрица');
       return;
     }
 
     const next = Array.from({ length: vertices }, () => Array(vertices).fill(0));
+    
     matrix.forEach(row => {
-      const verts = row.reduce<number[]>((acc, val, idx) => val === 1 ? [...acc, idx] : acc, []);
+      const verts = row.reduce((acc, val, idx) => val === 1 ? [...acc, idx] : acc, [] as number[]);
       const [v1, v2] = verts;
-      next[v1][v2]++;
-      next[v2][v1]++;
+      if (v1 !== undefined && v2 !== undefined) {
+        next[v1][v2]++;
+        next[v2][v1]++;
+      }
     });
 
     setAdj(next);
@@ -37,6 +39,7 @@ export default function Module5() {
   };
 
   const exportCSV = () => {
+    if (adj.length === 0) return;
     const csv = adj.map(r => r.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -48,11 +51,31 @@ export default function Module5() {
   };
 
   const shareLink = async () => {
-    const encoded = btoa(encodeURIComponent(JSON.stringify(adj)));
-    const url = `${window.location.origin}${window.location.pathname}?data=${encoded}`;
-    await navigator.clipboard.writeText(url);
-    alert('Ссылка скопирована!');
+    if (adj.length === 0) return;
+    try {
+      const encoded = btoa(encodeURIComponent(JSON.stringify(adj)));
+      const url = `${window.location.origin}${window.location.pathname}?data=${encoded}`;
+      await navigator.clipboard.writeText(url);
+      alert('✅ Ссылка скопирована!');
+    } catch (e) {
+      alert('❌ Ошибка');
+    }
   };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const encoded = params.get('data');
+    if (encoded) {
+      try {
+        const decoded = decodeURIComponent(atob(encoded));
+        const loadedMatrix = JSON.parse(decoded);
+        setAdj(loadedMatrix);
+        setResult('Матрица загружена из ссылки');
+      } catch (e) {
+        console.error('Failed to load');
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (matrix.some(row => row.some(v => v === 1))) run();
@@ -60,22 +83,42 @@ export default function Module5() {
   }, [matrix, vertices]);
 
   return (
-    <section className="card">
+    <div className="container">
       <h1>Модуль 5: Матрица смежности</h1>
+      
       <MatrixForm />
-      <button className="btn" onClick={run}>Рассчитать</button>
-      <button className="btn" onClick={exportCSV}>Экспорт CSV</button>
-      <button className="btn" onClick={shareLink}>Скопировать ссылку</button>
+      
+      <div className="grid">
+        <button onClick={run} className="btn">Рассчитать</button>
+        <button onClick={exportCSV} disabled={adj.length === 0} className="btn">📥 Экспорт CSV</button>
+        <button onClick={shareLink} disabled={adj.length === 0} className="btn">🔗 Скопировать ссылку</button>
+      </div>
+      
       {result && <div className="result">{result}</div>}
+      
       {adj.length > 0 && (
-        <table className="table">
-          <tbody>
-            {adj.map((row, i) => (
-              <tr key={i}>{row.map((v, j) => <td key={j}>{v}</td>)}</tr>
-            ))}
-          </tbody>
-        </table>
+        <div>
+          <h3>Матрица смежности:</h3>
+          <table className="table">
+            <thead>
+              <tr>
+                <th></th>
+                {adj.map((_, i) => <th key={i}>V{i+1}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {adj.map((row, i) => (
+                <tr key={i}>
+                  <th>V{i+1}</th>
+                  {row.map((v, j) => (
+                    <td key={j}>{v}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
-    </section>
+    </div>
   );
 }

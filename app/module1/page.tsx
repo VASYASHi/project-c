@@ -16,7 +16,10 @@ export default function Module1() {
     }
 
     const isPseudograph = matrix.some(row => row.filter(v => v === 1).length !== 2);
-    const text = isPseudograph ? 'Да, нарушена структура простого графа' : 'Нет';
+    const text = isPseudograph 
+      ? 'Да, нарушена структура простого графа' 
+      : 'Нет';
+    
     setResult(text);
     setLastModule('module1');
     setLastResult(text);
@@ -28,12 +31,15 @@ export default function Module1() {
   }, [matrix]);
 
   return (
-    <section className="card">
+    <div className="container">
       <h1>Модуль 1: Проверка псевдографа</h1>
       <p>Для простого графа в каждой строке должно быть ровно две единицы.</p>
+      
       <MatrixForm />
-      <button className="btn" onClick={run}>Рассчитать</button>
+      
+      <button onClick={run} className="btn">Рассчитать</button>
+      
       {result && <div className="result">{result}</div>}
-    </section>
+    </div>
   );
 }

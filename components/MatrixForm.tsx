@@ -17,6 +17,8 @@ export default function MatrixForm() {
   } = useGraph();
 
   const [error, setError] = useState('');
+  const [focusedSize, setFocusedSize] = useState<'v' | 'e' | null>(null);
+  const [sizeDrafts, setSizeDrafts] = useState<{ v?: string; e?: string }>({});
   const [focusedCell, setFocusedCell] = useState<string | null>(null);
   const [cellDrafts, setCellDrafts] = useState<Record<string, CellState>>({});
 
@@ -79,20 +81,47 @@ export default function MatrixForm() {
     setFocusedCell(null);
   };
 
-  const handleSizeChange = (setter: (n: number) => void, value: string) => {
-    if (value === '') {
-      setError('');
+  // const handleSizeChange = (setter: (n: number) => void, value: string) => {
+  //   if (value === '') {
+  //     setError('');
+  //     return;
+  //   }
+
+  //   const n = Number(value);
+  //   if (!Number.isInteger(n) || n < 1 || n > 15) {
+  //     setError('Допустимый размер: от 1 до 15');
+  //     return;
+  //   }
+
+  //   setError('');
+  //   setter(n);
+  // };
+
+  const handleSizeFocus = (type: 'v' | 'e') => {
+    setFocusedSize(type);
+    setSizeDrafts(prev => ({ ...prev, [type]: '' }));
+  };
+
+  const handleSizeChange = (type: 'v' | 'e', val: string) => {
+    if (val !== '' && !/^[0-9]+$/.test(val)) return;
+    setSizeDrafts(prev => ({ ...prev, [type]: val }));
+    if (val === '') return;
+  
+    const n = Number(val);
+    if (n < 1 || n > 15) {
+      setError('Размер: от 1 до 15');
       return;
     }
-
-    const n = Number(value);
-    if (!Number.isInteger(n) || n < 1 || n > 15) {
-      setError('Допустимый размер: от 1 до 15');
-      return;
-    }
-
     setError('');
-    setter(n);
+    if (type === 'v') setVertices(n);
+    else setEdges(n);
+  };
+
+  const handleSizeBlur = (type: 'v' | 'e', current: number) => {
+    if (!sizeDrafts[type]) {
+      setSizeDrafts(prev => ({ ...prev, [type]: String(current) }));
+    }
+    setFocusedSize(null);
   };
 
   return (
@@ -100,25 +129,46 @@ export default function MatrixForm() {
       <h2>Матрица инцидентности</h2>
 
       <div className="size-row">
-        <label>Вершины</label>
-        <input
-          type="number"
-          min={1}
-          max={15}
-          step={1}
-          value={vertices}
-          onChange={(e) => handleSizeChange(setVertices, e.target.value)}
-        />
-
-        <label>Рёбра</label>
-        <input
-          type="number"
-          min={1}
-          max={15}
-          step={1}
-          value={edges}
-          onChange={(e) => handleSizeChange(setEdges, e.target.value)}
-        />
+        <label style={{ fontWeight: 'bold' }}>
+          Вершины:
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={2}
+            value={focusedSize === 'v' ? (sizeDrafts.v ?? '') : vertices}
+            onFocus={() => handleSizeFocus('v')}
+            onChange={e => handleSizeChange('v', e.target.value)}
+            onBlur={() => handleSizeBlur('v', vertices)}
+            style={{ 
+              marginLeft: '8px', 
+              width: '60px', 
+              padding: '6px',
+              textAlign: 'center',
+              border: focusedSize === 'v' ? '2px solid #43a047' : '1px solid #ccc',
+              borderRadius: '4px'
+            }}
+          />
+        </label>
+        <label style={{ fontWeight: 'bold' }}>
+          Рёбра:
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={2}
+            value={focusedSize === 'e' ? (sizeDrafts.e ?? '') : edges}
+            onFocus={() => handleSizeFocus('e')}
+            onChange={e => handleSizeChange('e', e.target.value)}
+            onBlur={() => handleSizeBlur('e', edges)}
+            style={{ 
+              marginLeft: '8px', 
+              width: '60px', 
+              padding: '6px',
+              textAlign: 'center',
+              border: focusedSize === 'e' ? '2px solid #43a047' : '1px solid #ccc',
+              borderRadius: '4px'
+            }}
+          />
+        </label>
 
         <button type="button" className="btn" onClick={clearAll}>
           Очистить матрицу
