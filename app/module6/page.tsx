@@ -1,45 +1,41 @@
 'use client';
-import { useState } from 'react';
-import type { MatrixForm } from '@/types/matrix';
-import MatrixInput from '@/components/MatrixForm';
+
+import { useEffect, useState } from 'react';
+import MatrixForm from '@/components/MatrixForm';
+import { useGraph } from '@/context/GraphContext';
 
 export default function Module6() {
-  const [result, setResult] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { matrix } = useGraph();
+  const [result, setResult] = useState('');
 
-  const calculate = ({ data, size }: MatrixForm) => {
-    try {
-      setError(null);
-      
-      // Подсчёт рёбер между парами вершин
-      const edgeMap = new Map<string, number>();
-      for (let e = 0; e < data.length; e++) {
-        const vertices = [];
-        for (let v = 0; v < size; v++) {
-          if (Math.abs(data[e][v]) > 0) vertices.push(v);
-        }
-        
-        if (vertices.length === 2) {
-          const [v1, v2] = vertices.sort((a,b) => a-b);
-          const key = `${v1}-${v2}`;
-          edgeMap.set(key, (edgeMap.get(key) || 0) + 1);
-        }
-      }
-      
-      const hasMultiEdges = Array.from(edgeMap.values()).some(count => count > 1);
-      setResult(hasMultiEdges ? 'Да, мультиграф (кратные рёбра найдены)' : 'Нет, простой граф');
-    } catch (e) {
-      setError(`Ошибка проверки: ${(e as Error).message}`);
+  const run = () => {
+    const hasAnyValue = matrix.some(row => row.some(v => v === 1));
+    if (!hasAnyValue) {
+      setResult('');
+      return;
     }
+
+    const getEdgeKey = (row: number[]) =>
+      row.reduce<number[]>((acc, val, idx) => val === 1 ? [...acc, idx] : acc, [])
+        .sort((a, b) => a - b)
+        .join(',');
+
+    const keys = matrix.map(getEdgeKey);
+    const isMultigraph = new Set(keys).size !== keys.length;
+    setResult(isMultigraph ? 'Да, есть кратные рёбра' : 'Нет, граф простой');
   };
 
+  useEffect(() => {
+    if (matrix.some(row => row.some(v => v === 1))) run();
+    else setResult('');
+  }, [matrix]);
+
   return (
-    <div>
-      <h1>Модуль 6: Мультиграф?</h1>
-      <p>Мультиграф содержит кратные рёбра между вершинами.</p>
-      <MatrixInput onSubmit={calculate} title="Матрица инцидентности" />
-      {error && <div className="graph-error">{error}</div>}
-      {result && <div className="result"><h3>Результат:</h3><p>{result}</p></div>}
-    </div>
+    <section className="card">
+      <h1>Модуль 6: Проверить мультиграф</h1>
+      <MatrixForm />
+      <button className="btn" onClick={run}>Рассчитать</button>
+      {result && <div className="result">{result}</div>}
+    </section>
   );
 }

@@ -1,30 +1,39 @@
 'use client';
-import { useState } from 'react';
-import type { MatrixForm } from '@/types/matrix';
-import MatrixInput from '@/components/MatrixForm';
+
+import { useEffect, useState } from 'react';
+import MatrixForm from '@/components/MatrixForm';
+import { useGraph } from '@/context/GraphContext';
 
 export default function Module1() {
-  const [result, setResult] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { matrix, setLastModule, setLastResult } = useGraph();
+  const [result, setResult] = useState('');
 
-  const calculate = ({ data }: MatrixForm) => {
-  try {
-    // Петля = 2 в строке ИЛИ две 1 в одной вершине (невозможно)
-    const hasLoops = data.some(row => row.some(val => val === 2));
-    setResult(hasLoops ? 'Да, псевдограф (найдены петли со степенью 2)' : 'Нет, простой граф');
-  } catch (e) {
-    setError(`Ошибка вычисления: ${(e as Error).message}`);
-  }
-};
+  const run = () => {
+    const hasAnyValue = matrix.some(row => row.some(v => v === 1));
+    if (!hasAnyValue) {
+      setResult('');
+      return;
+    }
 
+    const isPseudograph = matrix.some(row => row.filter(v => v === 1).length !== 2);
+    const text = isPseudograph ? 'Да, нарушена структура простого графа' : 'Нет';
+    setResult(text);
+    setLastModule('module1');
+    setLastResult(text);
+  };
+
+  useEffect(() => {
+    if (matrix.some(row => row.some(v => v === 1))) run();
+    else setResult('');
+  }, [matrix]);
 
   return (
-    <div>
-      <h1>Модуль 1: Псевдограф?</h1>
-      <p>Псевдограф — граф с петлями (-1 или 2 в матрице).</p>
-      <MatrixInput onSubmit={calculate} title="Матрица инцидентности" />
-      {error && <div className="graph-error">{error}</div>}
-      {result && <div className="result"><h3>Результат:</h3><p>{result}</p></div>}
-    </div>
+    <section className="card">
+      <h1>Модуль 1: Проверка псевдографа</h1>
+      <p>Для простого графа в каждой строке должно быть ровно две единицы.</p>
+      <MatrixForm />
+      <button className="btn" onClick={run}>Рассчитать</button>
+      {result && <div className="result">{result}</div>}
+    </section>
   );
 }

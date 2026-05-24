@@ -1,18 +1,23 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
-import Navbar from '@/components/Navbar'; // Создай простой Navbar ниже
-
-const inter = Inter({ subsets: ['latin'] });
-
-export const metadata: Metadata = { title: 'Графы по матрице инцидентности' };
+import Link from 'next/link';
+import { GraphProvider } from '@/context/GraphContext';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru">
-      <body className={inter.className}>
-        <Navbar />
-        <div className="container">{children}</div>
+      <body>
+        <GraphProvider>
+          <nav className="navbar">
+            <Link href="/">Главная</Link>
+            <Link href="/module1">Псевдограф</Link>
+            <Link href="/module2">Петли</Link>
+            <Link href="/module3">Степени</Link>
+            <Link href="/module4">Регулярность</Link>
+            <Link href="/module5">Смежность</Link>
+            <Link href="/module6">Мультиграф</Link>
+          </nav>
+          <main className="container">{children}</main>
+        </GraphProvider>
       </body>
     </html>
   );

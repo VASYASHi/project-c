@@ -1,101 +1,167 @@
 'use client';
-import { useState, useCallback, useEffect } from 'react';
-import type { MatrixForm } from '@/types/matrix';
 
-export default function MatrixInput({ onSubmit, title }: { onSubmit: (data: MatrixForm) => void; title: string; }) {
-  const [numVertices, setNumVertices] = useState(3);
-  const [numEdges, setNumEdges] = useState(3);
-  const [data, setData] = useState<number[][]>([]);
-  const [error, setError] = useState<string | null>(null);
+import { useMemo, useState } from 'react';
+import { useGraph } from '@/context/GraphContext';
 
-  useEffect(() => {
-    const newData = Array.from({ length: numEdges }, () => Array(numVertices).fill(0));
-    for (let e = 0; e < Math.min(numEdges, data.length); e++) {
-      for (let v = 0; v < Math.min(numVertices, data[0]?.length || 0); v++) {
-        newData[e][v] = data[e][v] || 0;
-      }
-    }
-    setData(newData);
-    setError(null);
-  }, [numVertices, numEdges]);
+type CellState = string;
 
-  const validateRow = (row: number[]) => {
-    const nonZero = row.filter(val => Math.abs(val) > 0);
-    return nonZero.length <= 2 && nonZero.every(val => [1, 2].includes(Math.abs(val)));
+export default function MatrixForm() {
+  const {
+    vertices,
+    edges,
+    matrix,
+    setVertices,
+    setEdges,
+    setMatrix,
+    clearAll,
+  } = useGraph();
+
+  const [error, setError] = useState('');
+  const [focusedCell, setFocusedCell] = useState<string | null>(null);
+  const [cellDrafts, setCellDrafts] = useState<Record<string, CellState>>({});
+
+  const matrixValidity = useMemo(() => {
+    return matrix.map((row) => row.filter((v) => v === 1).length === 2);
+  }, [matrix]);
+
+  const hasAnyValue = useMemo(() => {
+    return matrix.some(row => row.some(v => v === 1));
+  }, [matrix]);
+
+  const keyOf = (r: number, c: number) => `${r}-${c}`;
+
+  const syncDraftToMatrix = (r: number, c: number, value: string) => {
+    const next = matrix.map(row => [...row]);
+    next[r][c] = value === '' ? 0 : Number(value);
+    setMatrix(next);
   };
 
-  const getRowStatus = (rowIndex: number) => {
-    const row = data[rowIndex] || [];
-    const nonZeroCount = row.filter(val => Math.abs(val) > 0).length;
-    if (nonZeroCount > 2) return 'error';
-    if (nonZeroCount === 0) return 'empty';
-    return 'valid';
+  const handleCellFocus = (r: number, c: number) => {
+    const key = keyOf(r, c);
+    setFocusedCell(key);
+    setCellDrafts(prev => ({
+      ...prev,
+      [key]: '',
+    }));
   };
 
-  const updateCell = useCallback((row: number, col: number, val: string) => {
-    const num = Math.max(0, Math.min(2, parseInt(val) || 0));
-    
-    // Предварительная проверка строки
-    const testRow = data.map(r => [...r]);
-    testRow[row][col] = num;
-    if (!validateRow(testRow[row])) {
-      setError('В строке ребра может быть не более двух ненулевых значений (1 или 2)');
-      return;
-    }
-    
-    setData(testRow);
-    setError(null);
-  }, [data]);
+  const handleCellChange = (r: number, c: number, value: string) => {
+    const key = keyOf(r, c);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Финальная валидация
-    const invalidRows = data.map((row, i) => validateRow(row) ? -1 : i).filter(i => i >= 0);
-    if (invalidRows.length > 0) {
-      setError(`Некорректные строки ребра: ${invalidRows.join(', ')+1}. Исправьте.`);
+    if (value === '') {
+      setCellDrafts(prev => ({ ...prev, [key]: '' }));
+      syncDraftToMatrix(r, c, '');
+      setError('');
       return;
     }
-    
-    onSubmit({ size: numVertices, data, numEdges });
+
+    if (!/^[01]$/.test(value)) {
+      setError(`Ячейка [${r + 1}, ${c + 1}]: можно вводить только 0 или 1`);
+      return;
+    }
+
+    setCellDrafts(prev => ({ ...prev, [key]: value }));
+    syncDraftToMatrix(r, c, value);
+    setError('');
+  };
+
+  const handleCellBlur = (r: number, c: number) => {
+    const key = keyOf(r, c);
+    const draft = cellDrafts[key];
+
+    if (draft === '' || draft === undefined) {
+      const next = matrix.map(row => [...row]);
+      next[r][c] = 0;
+      setMatrix(next);
+      setCellDrafts(prev => ({ ...prev, [key]: '0' }));
+    }
+
+    setFocusedCell(null);
+  };
+
+  const handleSizeChange = (setter: (n: number) => void, value: string) => {
+    if (value === '') {
+      setError('');
+      return;
+    }
+
+    const n = Number(value);
+    if (!Number.isInteger(n) || n < 1 || n > 15) {
+      setError('Допустимый размер: от 1 до 15');
+      return;
+    }
+
+    setError('');
+    setter(n);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="matrix-container">
-      <h2>{title}</h2>
-      <p className="help-text">
-        <strong>Формат:</strong> 0=нет связи, 1=связь с вершиной, 2=петля на вершине. Макс. 2 ненулевых в строке.
-      </p>
-      
-      <div className="size-input">
-        <label>Вершины: </label>
-        <input type="number" min="1" max="15" value={numVertices} onChange={e => setNumVertices(+e.target.value)} />
-        <label style={{ marginLeft: '2rem' }}>Рёбра: </label>
-        <input type="number" min="1" max="15" value={numEdges} onChange={e => setNumEdges(+e.target.value)} />
+    <section className="card">
+      <h2>Матрица инцидентности</h2>
+
+      <div className="size-row">
+        <label>Вершины</label>
+        <input
+          type="number"
+          min={1}
+          max={15}
+          step={1}
+          value={vertices}
+          onChange={(e) => handleSizeChange(setVertices, e.target.value)}
+        />
+
+        <label>Рёбра</label>
+        <input
+          type="number"
+          min={1}
+          max={15}
+          step={1}
+          value={edges}
+          onChange={(e) => handleSizeChange(setEdges, e.target.value)}
+        />
+
+        <button type="button" className="btn" onClick={clearAll}>
+          Очистить матрицу
+        </button>
       </div>
-      
-      {error && <div className="graph-error">{error}</div>}
-      
-      <div className="matrix-input" style={{ '--cols': numVertices, '--rows': numEdges } as React.CSSProperties}>
-        {Array.from({ length: numEdges }, (_, row) =>
-          Array.from({ length: numVertices }, (_, col) => {
-            const status = getRowStatus(row);
+
+      {error && <div className="error">{error}</div>}
+
+      <div className="matrix" style={{ gridTemplateColumns: `repeat(${vertices}, minmax(44px, 1fr))` }}>
+        {Array.from({ length: edges }, (_, r) =>
+          Array.from({ length: vertices }, (_, c) => {
+            const key = keyOf(r, c);
+            const isFocused = focusedCell === key;
+            const value = cellDrafts[key] ?? String(matrix[r]?.[c] ?? 0);
+            const validRow = matrixValidity[r] ?? false;
+
             return (
               <input
-                key={`${row}-${col}`}
+                key={key}
                 type="number"
-                min="0"
-                max="2"
-                value={data[row]?.[col] ?? 0}
-                onChange={e => updateCell(row, col, e.target.value)}
-                className={`matrix-cell ${status}`}
+                min={0}
+                max={1}
+                step={1}
+                value={isFocused ? value : String(matrix[r]?.[c] ?? 0)}
+                onFocus={() => handleCellFocus(r, c)}
+                onChange={(e) => handleCellChange(r, c, e.target.value)}
+                onBlur={() => handleCellBlur(r, c)}
+                className={validRow ? 'cell-valid' : 'cell-invalid'}
               />
             );
           })
         )}
       </div>
-      
-      <button type="submit" className="btn">Рассчитать</button>
-    </form>
+
+      <div className="matrix-hint">
+        При фокусе значение очищается. Введите 0 или 1 с клавиатуры. В каждой строке должно быть ровно две единицы.
+      </div>
+
+      {hasAnyValue && !matrixValidity.every(Boolean) && (
+        <div className="matrix-warning">
+          Матрица не соответствует простому графу
+        </div>
+      )}
+    </section>
   );
 }

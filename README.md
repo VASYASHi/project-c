@@ -49,7 +49,7 @@ const isRegular = degrees.every(d => d === degrees[0]);
 Файл: app/module5/page.tsx
 Баг: Логика в целом верная, но зависит от корректности входных данных
 // Обработка петли:
- else if (vertices.length === 1) {
+else if (vertices.length === 1) {
   const [v] = vertices;
   adj[v][v]++; // верно, но только если петля правильно определена на входе
 }

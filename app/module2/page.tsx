@@ -1,34 +1,41 @@
 'use client';
-import { useState } from 'react';
-import type { MatrixForm } from '@/types/matrix';
-import MatrixInput from '@/components/MatrixForm';
+
+import { useEffect, useState } from 'react';
+import MatrixForm from '@/components/MatrixForm';
+import { useGraph } from '@/context/GraphContext';
 
 export default function Module2() {
-  const [result, setResult] = useState<string | null>(null);  // ← УПРОЩЁННЫЙ тип
-  const [error, setError] = useState<string | null>(null);
+  const { matrix, setLastModule, setLastResult } = useGraph();
+  const [result, setResult] = useState('');
 
-  const calculate = ({ data }: MatrixForm) => {
-  try {
-    const loops = data.filter(row => row.some(val => val === 2));
-    const loopVertices = loops.map(row => 
-      row.findIndex(val => val === 2) + 1
-    );
-    setResult(
-      `Петли найдены на вершинах: ${loopVertices.length ? loopVertices.join(', ') : 'нет'} (${loopVertices.length})`
-    );
-  } catch (e) {
-    setError(`Ошибка: ${(e as Error).message}`);
-  }
-};
+  const run = () => {
+    const hasAnyValue = matrix.some(row => row.some(v => v === 1));
+    if (!hasAnyValue) {
+      setResult('');
+      return;
+    }
 
+    const invalidRows = matrix.filter(row => row.filter(v => v === 1).length !== 2).length;
+    const text = invalidRows > 0
+      ? `Найдено ${invalidRows} рёбер с нарушенной структурой`
+      : 'Петель нет (граф простой)';
+
+    setResult(text);
+    setLastModule('module2');
+    setLastResult(text);
+  };
+
+  useEffect(() => {
+    if (matrix.some(row => row.some(v => v === 1))) run();
+    else setResult('');
+  }, [matrix]);
 
   return (
-    <div>
-      <h1>Модуль 2: Количество петель</h1>
-      <p>Петля — ребро, соединяющее вершину саму с собой (два 1 в строке).</p>
-      <MatrixInput onSubmit={calculate} title="Матрица инцидентности" />
-      {error && <div className="graph-error">{error}</div>}
-      {result && <div className="result"><h3>Результат:</h3><p>{result}</p></div>}
-    </div>
+    <section className="card">
+      <h1>Модуль 2: Найти петли</h1>
+      <MatrixForm />
+      <button className="btn" onClick={run}>Рассчитать</button>
+      {result && <div className="result">{result}</div>}
+    </section>
   );
 }
