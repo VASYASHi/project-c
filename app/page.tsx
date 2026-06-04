@@ -13,6 +13,7 @@ export default function Home() {
         <Link className="btn" href="/module4">Регулярность</Link>
         <Link className="btn" href="/module5">Матрица смежности</Link>
         <Link className="btn" href="/module6">Мультиграф</Link>
+        <Link className="btn" href="/help">Справка</Link> 
       </div>
     </section>
   );

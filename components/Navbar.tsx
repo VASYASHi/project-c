@@ -10,6 +10,7 @@ export default function Navbar() {
     { href: '/module4', label: 'Регулярный' },
     { href: '/module5', label: 'Смежность' },
     { href: '/module6', label: 'Мультиграф' },
+    { href: '/help', label: 'Справка' },
   ];
   return (
     <nav className="navbar">

@@ -180,31 +180,49 @@ export default function MatrixForm() {
 
       {error && <div className="error">{error}</div>}
 
-      <div className="matrix" style={{ gridTemplateColumns: `repeat(${vertices}, minmax(44px, 1fr))` }}>
-        {Array.from({ length: edges }, (_, r) =>
-          Array.from({ length: vertices }, (_, c) => {
-            const key = keyOf(r, c);
-            const isFocused = focusedCell === key;
-            const value = cellDrafts[key] ?? String(matrix[r]?.[c] ?? 0);
-            const validRow = matrixValidity[r] ?? false;
-
-            return (
-              <input
-                key={key}
-                type="number"
-                min={0}
-                max={1}
-                step={1}
-                value={isFocused ? value : String(matrix[r]?.[c] ?? 0)}
-                onFocus={() => handleCellFocus(r, c)}
-                onChange={(e) => handleCellChange(r, c, e.target.value)}
-                onBlur={() => handleCellBlur(r, c)}
-                className={validRow ? 'cell-valid' : 'cell-invalid'}
-              />
-            );
-          })
-        )}
+      <div className="matrix" style={{ gridTemplateColumns: `auto repeat(${vertices}, 44px)` }}>
+  {/* Заголовки столбцов (вершины) */}
+  <div style={{ gridColumn: `1 / ${vertices + 2}`, display: 'contents' }}>
+    <div style={{ width: '44px', height: '44px' }}></div>
+    {Array.from({ length: vertices }, (_, c) => (
+      <div key={c} className="matrix-header-cell" style={{ width: '44px', height: '44px' }}>
+        V{c + 1}
       </div>
+    ))}
+  </div>
+
+  {/* Строки матрицы с нумерацией рёбер */}
+  {Array.from({ length: edges }, (_, r) => (
+    <div key={r} style={{ display: 'contents' }}>
+      {/* Номер строки (ребро) */}
+      <div className="matrix-row-label" style={{ width: '44px', height: '44px' }}>
+        E{r + 1}
+      </div>
+      {/* Ячейки строки */}
+      {Array.from({ length: vertices }, (_, c) => {
+        const key = keyOf(r, c);
+        const isFocused = focusedCell === key;
+        const value = cellDrafts[key] ?? String(matrix[r]?.[c] ?? 0);
+        const validRow = matrixValidity[r] ?? false;
+
+        return (
+          <input
+            key={key}
+            type="text"
+            inputMode="numeric"
+            maxLength={1}
+            value={isFocused ? value : String(matrix[r]?.[c] ?? 0)}
+            onFocus={() => handleCellFocus(r, c)}
+            onChange={(e) => handleCellChange(r, c, e.target.value)}
+            onBlur={() => handleCellBlur(r, c)}
+            className={validRow ? 'cell-valid' : 'cell-invalid'}
+            style={{ width: '44px', height: '44px' }}
+          />
+        );
+      })}
+    </div>
+  ))}
+</div>
 
       <div className="matrix-hint">
         При фокусе значение очищается. Введите 0 или 1. В строке: 2 единицы — обычное ребро, 1 единица — петля.

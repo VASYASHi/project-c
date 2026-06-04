@@ -15,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/module4">Регулярность</Link>
             <Link href="/module5">Смежность</Link>
             <Link href="/module6">Мультиграф</Link>
+            <Link className="btn" href="/help">Справка</Link> 
           </nav>
           <main className="container">{children}</main>
         </GraphProvider>
